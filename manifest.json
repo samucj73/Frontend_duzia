@@ -1,7 +1,7 @@
 {
   "name": "Previsão da Dúzia",
   "short_name": "Dúzia IA",
-  "start_url": "index.html",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#0a9396",
@@ -9,6 +9,11 @@
     {
       "src": "https://cdn-icons-png.flaticon.com/512/1828/1828884.png",
       "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/1828/1828884.png",
+      "sizes": "512x512",
       "type": "image/png"
     }
   ]
