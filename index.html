@@ -17,10 +17,52 @@
       font-size: 2rem;
       margin-top: 20px;
     }
+    #status {
+      color: #777;
+      margin-top: 10px;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
   <h1>🎯 Previsão da Dúzia (IA)</h1>
   <div id="duzia">Carregando previsão...</div>
+
+  <div id="status">🔍 Verificando permissões...</div>
+  <button id="testarBtn">🔔 Testar Notificação</button>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const statusEl = document.getElementById("status");
+      const testarBtn = document.getElementById("testarBtn");
+
+      // Atualiza status da permissão
+      if (!("Notification" in window)) {
+        statusEl.textContent = "❌ Navegador não suporta notificações.";
+      } else {
+        statusEl.textContent = "📡 Permissão atual: " + Notification.permission;
+      }
+
+      // Evento de clique no botão
+      testarBtn.addEventListener("click", async () => {
+        try {
+          const res = await fetch("https://SEU_BACKEND/api/enviar-teste");
+          if (res.ok) {
+            alert("✅ Notificação enviada! Verifique seu dispositivo.");
+          } else {
+            alert("❌ Falha ao enviar notificação.");
+          }
+        } catch (e) {
+          console.error("Erro ao testar notificação:", e);
+          alert("❌ Erro ao enviar.");
+        }
+      });
+    });
+  </script>
 </body>
 </html>
