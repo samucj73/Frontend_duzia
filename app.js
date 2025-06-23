@@ -33,7 +33,7 @@ async function initPush() {
     console.log('[PUSH] Inscrição feita:', subscription);
 
     // Envia para backend
-    const res = await fetch('https://SEU_BACKEND/api/salvar-inscricao', {
+    const res = await fetch('https://roleta-backend.onrender.com/api/salvar-inscricao', {
       method: 'POST',
       body: JSON.stringify(subscription),
       headers: {
