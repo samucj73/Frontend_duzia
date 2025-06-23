@@ -1,31 +1,27 @@
-self.addEventListener("install", () => {
-  console.log("✅ Service Worker instalado.");
-});
-
-self.addEventListener("activate", () => {
-  console.log("✅ Service Worker ativado.");
-});
-
 self.addEventListener("push", function (event) {
   console.log("📨 Push recebido!");
 
-  let data = { title: "Nova previsão", body: "Confira a nova previsão da dúzia!" };
+  let payload = {
+    title: "Previsão de Dúzia",
+    body: "Confira a nova previsão!"
+  };
 
   if (event.data) {
     try {
-      data = event.data.json();
+      const received = event.data.json();
+      payload.body = `🔮 Nova previsão: ${received.duzia || received.body || "Desconhecida"}`;
     } catch (e) {
-      data.body = event.data.text();
+      payload.body = event.data.text();
     }
   }
 
   const options = {
-    body: data.body,
+    body: payload.body,
     icon: "/icone.png",
     badge: "/badge.png"
   };
 
   event.waitUntil(
-    self.registration.showNotification(data.title, options)
+    self.registration.showNotification(payload.title, options)
   );
 });
