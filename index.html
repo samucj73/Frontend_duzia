@@ -37,21 +37,64 @@
   <button id="testarBtn">🔔 Testar Notificação</button>
 
   <script>
-    document.addEventListener("DOMContentLoaded", () => {
+    const API_BASE = "https://roleta-backend.onrender.com";
+
+    async function carregarPrevisao() {
+      const duziaEl = document.getElementById("duzia");
+      try {
+        const res = await fetch(`${API_BASE}/previsao-duzia`);
+        if (!res.ok) throw new Error("Falha ao obter previsão.");
+        const data = await res.json();
+        const mapa = {
+          0: "🎯 Zero",
+          1: "1ª Dúzia (1–12)",
+          2: "2ª Dúzia (13–24)",
+          3: "3ª Dúzia (25–36)"
+        };
+        duziaEl.textContent = `🔮 ${mapa[data.duzia_prevista] || data.duzia_prevista}`;
+      } catch (e) {
+        duziaEl.textContent = "⚠️ Erro ao obter previsão.";
+        console.error(e);
+      }
+    }
+
+    async function registrarInscricaoPush() {
+      if (!("serviceWorker" in navigator)) return;
+
+      try {
+        const sw = await navigator.serviceWorker.register("sw.js");
+        const sub = await sw.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: "SUA_CHAVE_PUBLICA_VAPID_AQUI"
+        });
+
+        await fetch(`${API_BASE}/api/salvar-inscricao`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(sub)
+        });
+
+        console.log("✅ Inscrição salva com sucesso.");
+      } catch (e) {
+        console.error("Erro ao registrar push:", e);
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", async () => {
       const statusEl = document.getElementById("status");
       const testarBtn = document.getElementById("testarBtn");
 
-      // Atualiza status da permissão
       if (!("Notification" in window)) {
         statusEl.textContent = "❌ Navegador não suporta notificações.";
       } else {
-        statusEl.textContent = "📡 Permissão atual: " + Notification.permission;
+        const permission = await Notification.requestPermission();
+        statusEl.textContent = "📡 Permissão atual: " + permission;
+        if (permission === "granted") registrarInscricaoPush();
       }
 
-      // Evento de clique no botão
       testarBtn.addEventListener("click", async () => {
         try {
-          const res = await fetch("https://SEU_BACKEND/api/enviar-teste");
+          const res = await fetch(`${API_BASE}/api/enviar-teste`);
           if (res.ok) {
             alert("✅ Notificação enviada! Verifique seu dispositivo.");
           } else {
@@ -62,6 +105,9 @@
           alert("❌ Erro ao enviar.");
         }
       });
+
+      carregarPrevisao();
+      setInterval(carregarPrevisao, 60000);
     });
   </script>
 </body>
