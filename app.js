@@ -1,56 +1,55 @@
-// Verifica suporte a Service Worker e Push API
-if ('serviceWorker' in navigator && 'PushManager' in window) {
-  navigator.serviceWorker.register('service-worker.js')
-    .then(registration => {
-      console.log('Service Worker registrado:', registration);
+const VAPID_PUBLIC_KEY = 'BGO8ScfswYI69ck8pCErweZVXygY6_pKvmxMB09nh0hW_oO-h3eZhxlMs3PMzAvdftvqTCe47do9AcvnWUJavMw';
 
-      // Solicita permissão para notificações
-      return Notification.requestPermission();
-    })
-    .then(permission => {
-      if (permission !== 'granted') {
-        throw new Error('Permissão para notificações negada');
-      }
-      // Aguarda o service worker estar pronto
-      return navigator.serviceWorker.ready;
-    })
-    .then(registration => {
-      // Sua chave pública VAPID (exemplo - gere a sua!)
-      const vapidPublicKey = 'SUA_CHAVE_PUBLICA_VAPID_AQUI';
-
-      // Converte a chave para Uint8Array
-      const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
-
-      // Inscreve o usuário no Push
-      return registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: convertedVapidKey
-      });
-    })
-    .then(subscription => {
-      console.log('Usuário inscrito no push:', subscription);
-
-      // TODO: envie 'subscription' para seu backend para salvar e usar no envio de notificações push
-    })
-    .catch(err => {
-      console.error('Erro no registro de push:', err);
-    });
-} else {
-  console.warn('Push messaging não suportado neste navegador');
-}
-
-// Função para converter chave VAPID
+// Converte a chave VAPID para formato correto
 function urlBase64ToUint8Array(base64String) {
   const padding = '='.repeat((4 - base64String.length % 4) % 4);
-  const base64 = (base64String + padding)
-    .replace(/-/g, '+')
-    .replace(/_/g, '/');
-
-  const rawData = window.atob(base64);
-  const outputArray = new Uint8Array(rawData.length);
-
-  for (let i = 0; i < rawData.length; ++i) {
-    outputArray[i] = rawData.charCodeAt(i);
-  }
-  return outputArray;
+  const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+  const rawData = atob(base64);
+  return Uint8Array.from([...rawData].map(char => char.charCodeAt(0)));
 }
+
+// Registra o service worker e inscreve o push
+async function initPush() {
+  if (!('serviceWorker' in navigator)) {
+    console.warn('Service Workers não são suportados neste navegador.');
+    return;
+  }
+
+  try {
+    const registration = await navigator.serviceWorker.register('/service-worker.js');
+    console.log('[SW] Registrado:', registration);
+
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') {
+      console.warn('Permissão de notificação negada.');
+      return;
+    }
+
+    const subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+    });
+
+    console.log('[PUSH] Inscrição feita:', subscription);
+
+    // Envia para backend
+    const res = await fetch('https://SEU_BACKEND/api/salvar-inscricao', {
+      method: 'POST',
+      body: JSON.stringify(subscription),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (res.ok) {
+      console.log('[PUSH] Inscrição enviada com sucesso para o backend.');
+    } else {
+      console.error('[PUSH] Falha ao enviar inscrição:', await res.text());
+    }
+  } catch (err) {
+    console.error('[ERRO] push:', err);
+  }
+}
+
+// Inicializa
+initPush();
