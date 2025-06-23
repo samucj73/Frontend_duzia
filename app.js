@@ -1,63 +1,56 @@
-const DUZIA_URL = "https://roleta-backend.onrender.com/previsao-duzia";
-const DUZIA_ELEMENT = document.getElementById("duzia");
-let ultimaDuzia = null;
+// Verifica suporte a Service Worker e Push API
+if ('serviceWorker' in navigator && 'PushManager' in window) {
+  navigator.serviceWorker.register('service-worker.js')
+    .then(registration => {
+      console.log('Service Worker registrado:', registration);
 
-const VAPID_PUBLIC_KEY = "BMLWcXFiI-MBDtb71z33MzL-vAJ9K-1mF2m7kRQz7g1G_vTr7IzpIhZ8LDZLCfMDe7vnxjwFbyXkWqDy1tKqkHsY";
+      // Solicita permissão para notificações
+      return Notification.requestPermission();
+    })
+    .then(permission => {
+      if (permission !== 'granted') {
+        throw new Error('Permissão para notificações negada');
+      }
+      // Aguarda o service worker estar pronto
+      return navigator.serviceWorker.ready;
+    })
+    .then(registration => {
+      // Sua chave pública VAPID (exemplo - gere a sua!)
+      const vapidPublicKey = 'SUA_CHAVE_PUBLICA_VAPID_AQUI';
 
-async function iniciarNotificacoes() {
-  if ("serviceWorker" in navigator && "PushManager" in window) {
-    const registration = await navigator.serviceWorker.register("/sw.js");
-    console.log("✅ Service Worker registrado:", registration);
+      // Converte a chave para Uint8Array
+      const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
 
-    const permission = await Notification.requestPermission();
-    if (permission === "granted") {
-      const subscription = await registration.pushManager.subscribe({
+      // Inscreve o usuário no Push
+      return registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+        applicationServerKey: convertedVapidKey
       });
+    })
+    .then(subscription => {
+      console.log('Usuário inscrito no push:', subscription);
 
-      await fetch("https://roleta-backend.onrender.com/api/salvar-inscricao", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(subscription)
-      });
-
-      console.log("📬 Inscrição enviada ao backend.");
-    }
-  }
+      // TODO: envie 'subscription' para seu backend para salvar e usar no envio de notificações push
+    })
+    .catch(err => {
+      console.error('Erro no registro de push:', err);
+    });
+} else {
+  console.warn('Push messaging não suportado neste navegador');
 }
 
+// Função para converter chave VAPID
 function urlBase64ToUint8Array(base64String) {
-  const padding = "=".repeat((4 - base64String.length % 4) % 4);
-  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
-  const rawData = atob(base64);
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding)
+    .replace(/-/g, '+')
+    .replace(/_/g, '/');
+
+  const rawData = window.atob(base64);
   const outputArray = new Uint8Array(rawData.length);
+
   for (let i = 0; i < rawData.length; ++i) {
     outputArray[i] = rawData.charCodeAt(i);
   }
   return outputArray;
 }
-
-async function buscarPrevisao() {
-  try {
-    const response = await fetch(DUZIA_URL);
-    const data = await response.json();
-    const duzia = data.duzia_prevista;
-
-    if (duzia !== null) {
-      DUZIA_ELEMENT.textContent = `🔮 Dúzia prevista: ${duzia}`;
-      if (duzia !== ultimaDuzia) {
-        ultimaDuzia = duzia;
-        console.log("📢 Nova previsão detectada:", duzia);
-      }
-    } else {
-      DUZIA_ELEMENT.textContent = "⏳ IA ainda treinando...";
-    }
-  } catch (err) {
-    DUZIA_ELEMENT.textContent = "❌ Erro ao buscar previsão.";
-  }
-}
-
-iniciarNotificacoes();
-buscarPrevisao();
-setInterval(buscarPrevisao, 60000);
