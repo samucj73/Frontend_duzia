@@ -1,7 +1,7 @@
 {
   "name": "Previsão da Dúzia",
   "short_name": "Dúzia IA",
-  "start_url": "/",
+  "start_url": "index.html",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#0a9396",
