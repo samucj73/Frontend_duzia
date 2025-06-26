@@ -13,102 +13,17 @@
       text-align: center;
       margin-top: 50px;
     }
-    #duzia {
-      font-size: 2rem;
+    #previsao, #resultado, #acertos {
+      font-size: 1.2rem;
       margin-top: 20px;
-    }
-    #status {
-      color: #777;
-      margin-top: 10px;
-    }
-    button {
-      margin-top: 20px;
-      padding: 10px 20px;
-      font-size: 1rem;
-      cursor: pointer;
     }
   </style>
 </head>
 <body>
   <h1>🎯 Previsão da Dúzia (IA)</h1>
-  <div id="duzia">Carregando previsão...</div>
-
-  <div id="status">🔍 Verificando permissões...</div>
-  <button id="testarBtn">🔔 Testar Notificação</button>
-
-  <script>
-    const API_BASE = "https://roleta-backend.onrender.com";
-
-    async function carregarPrevisao() {
-      const duziaEl = document.getElementById("duzia");
-      try {
-        const res = await fetch(`${API_BASE}/previsao-duzia`);
-        if (!res.ok) throw new Error("Falha ao obter previsão.");
-        const data = await res.json();
-        const mapa = {
-          0: "🎯 Zero",
-          1: "1ª Dúzia (1–12)",
-          2: "2ª Dúzia (13–24)",
-          3: "3ª Dúzia (25–36)"
-        };
-        duziaEl.textContent = `🔮 ${mapa[data.duzia_prevista] || data.duzia_prevista}`;
-      } catch (e) {
-        duziaEl.textContent = "⚠️ Erro ao obter previsão.";
-        console.error(e);
-      }
-    }
-
-    async function registrarInscricaoPush() {
-      if (!("serviceWorker" in navigator)) return;
-
-      try {
-        const sw = await navigator.serviceWorker.register("sw.js");
-        const sub = await sw.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: "SUA_CHAVE_PUBLICA_VAPID_AQUI"
-        });
-
-        await fetch(`${API_BASE}/api/salvar-inscricao`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(sub)
-        });
-
-        console.log("✅ Inscrição salva com sucesso.");
-      } catch (e) {
-        console.error("Erro ao registrar push:", e);
-      }
-    }
-
-    document.addEventListener("DOMContentLoaded", async () => {
-      const statusEl = document.getElementById("status");
-      const testarBtn = document.getElementById("testarBtn");
-
-      if (!("Notification" in window)) {
-        statusEl.textContent = "❌ Navegador não suporta notificações.";
-      } else {
-        const permission = await Notification.requestPermission();
-        statusEl.textContent = "📡 Permissão atual: " + permission;
-        if (permission === "granted") registrarInscricaoPush();
-      }
-
-      testarBtn.addEventListener("click", async () => {
-        try {
-          const res = await fetch(`${API_BASE}/api/enviar-teste`);
-          if (res.ok) {
-            alert("✅ Notificação enviada! Verifique seu dispositivo.");
-          } else {
-            alert("❌ Falha ao enviar notificação.");
-          }
-        } catch (e) {
-          console.error("Erro ao testar notificação:", e);
-          alert("❌ Erro ao enviar.");
-        }
-      });
-
-      carregarPrevisao();
-      setInterval(carregarPrevisao, 60000);
-    });
-  </script>
+  <div id="previsao">Carregando previsão...</div>
+  <hr />
+  <div id="resultado">🎲 Aguardando novo sorteio...</div>
+  <div id="acertos">🔍 Aguardando resultado...</div>
 </body>
 </html>
