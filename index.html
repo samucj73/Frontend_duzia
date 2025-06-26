@@ -1,81 +1,29 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Previsão da Dúzia</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🔢 Previsão da Dúzia</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/1828/1828884.png">
+  <script defer src="app.js"></script>
   <style>
     body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: #0f172a;
-      color: white;
-      padding: 20px;
-    }
-    .container {
-      max-width: 500px;
-      margin: auto;
-    }
-    h1 {
-      font-size: 26px;
+      font-family: sans-serif;
       text-align: center;
-      margin-bottom: 20px;
+      margin-top: 50px;
     }
-    .card {
-      background: #1e293b;
-      padding: 16px;
-      border-radius: 12px;
-      margin-bottom: 15px;
-    }
-    .highlight {
-      background: #cbd5e1;
-      color: black;
-    }
-    .success {
-      background: #22c55e;
-      color: black;
-      text-align: center;
-    }
-    button {
-      background: #3b82f6;
-      border: none;
-      color: white;
-      padding: 12px 20px;
-      font-size: 16px;
-      border-radius: 10px;
-      cursor: pointer;
-      width: 100%;
-      margin-top: 10px;
-    }
-    button:disabled {
-      background: #64748b;
-      cursor: not-allowed;
+    #previsao, #resultado, #acertos {
+      font-size: 1.2rem;
+      margin-top: 20px;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>🎯 Previsão da Dúzia</h1>
-
-    <div class="card highlight">
-      🔮 <strong>Previsão da IA:</strong> <span id="duzia-prevista">2ª Dúzia (13–24)</span>
-    </div>
-
-    <div class="card">
-      🎲 <strong>Número sorteado:</strong> <span id="sorteado">13</span><br>
-      🧠 <strong>Dúzia:</strong> 2ª Dúzia (13–24)<br>
-      🎨 <strong>Cor:</strong> Black<br>
-      ⏰ <strong>Horário:</strong> 25/06/2025, 22:36:44
-    </div>
-
-    <div id="resultado" class="card success" style="display: none;">
-      ✅ Você acertou! Total: <span id="acertos">0</span>
-    </div>
-
-    <button id="startBtn">Começar a Jogar</button>
-    <audio id="coinSound" src="coin.mp3" preload="auto"></audio>
-  </div>
-  <script src="app.js"></script>
+  <h1>🎯 Previsão da Dúzia (IA)</h1>
+  <div id="previsao">Carregando previsão...</div>
+  <hr />
+  <div id="resultado">🎲 Aguardando novo sorteio...</div>
+  <div id="acertos">🔍 Aguardando resultado...</div>
 </body>
 </html>
