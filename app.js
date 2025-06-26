@@ -1,9 +1,11 @@
+
 const API_BASE = "https://roleta-backend.onrender.com";
 const VAPID_PUBLIC_KEY = "BGO8ScfswYI69ck8pCErweZVXygY6_pKvmxMB09nh0hW_oO-h3eZhxlMs3PMzAvdftvqTCe47do9AcvnWUJavMw";
 
 let ultimaData = null;
 let duziaPrevista = null;
 let acertos = 0;
+let jogando = false;
 
 const duziaMap = {
   0: "🎯 Zero",
@@ -46,18 +48,23 @@ async function carregarUltimoResultado() {
     if (historico.length === 0) return;
 
     const ultimo = historico[historico.length - 1];
-    if (ultimo.timestamp === ultimaData) return; // nada novo
+    if (ultimo.timestamp === ultimaData) return;
 
     ultimaData = ultimo.timestamp;
 
     const duziaResultado = getDuzia(ultimo.number);
     const acertou = duziaPrevista !== null && duziaResultado === duziaPrevista;
 
-    if (acertou) {
+    if (jogando && acertou) {
       acertos++;
       document.getElementById("acertos").textContent = `✅ Você acertou! Total: ${acertos}`;
-    } else {
+      const sound = document.getElementById("coinSound");
+      sound.currentTime = 0;
+      sound.play();
+    } else if (jogando) {
       document.getElementById("acertos").textContent = `❌ Último resultado não corresponde à previsão.`;
+    } else {
+      document.getElementById("acertos").textContent = `🔍 Jogo pausado.`;
     }
 
     document.getElementById("resultado").innerHTML = `
@@ -108,4 +115,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   await carregarUltimoResultado();
   setInterval(carregarUltimoResultado, 5000);
   await initPush();
+
+  const toggleBtn = document.getElementById("toggleJogoBtn");
+  toggleBtn.addEventListener("click", () => {
+    jogando = !jogando;
+    toggleBtn.textContent = jogando ? "Parar" : "Começar a Jogar";
+    if (jogando) {
+      document.getElementById("acertos").textContent = "🟢 Jogo iniciado. Aguardando resultados...";
+    } else {
+      document.getElementById("acertos").textContent = "⏸️ Jogo pausado.";
+    }
+  });
 });
