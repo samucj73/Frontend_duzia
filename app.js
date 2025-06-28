@@ -1,4 +1,3 @@
-
 const API_BASE = "https://roleta-backend.onrender.com";
 const VAPID_PUBLIC_KEY = "BGO8ScfswYI69ck8pCErweZVXygY6_pKvmxMB09nh0hW_oO-h3eZhxlMs3PMzAvdftvqTCe47do9AcvnWUJavMw";
 
@@ -6,6 +5,7 @@ let ultimaData = null;
 let duziaPrevista = null;
 let acertos = 0;
 let jogando = false;
+let intervaloAtual = null;
 
 const duziaMap = {
   0: "🎯 Zero",
@@ -48,7 +48,7 @@ async function carregarUltimoResultado() {
     if (historico.length === 0) return;
 
     const ultimo = historico[historico.length - 1];
-    if (ultimo.timestamp === ultimaData) return;
+    if (ultimo.timestamp === ultimaData) return; // já foi processado
 
     ultimaData = ultimo.timestamp;
 
@@ -110,10 +110,25 @@ function urlBase64ToUint8Array(base64String) {
   return Uint8Array.from([...rawData].map(char => char.charCodeAt(0)));
 }
 
+// ▶️ Controla se a aba está visível ou não
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
+    carregarUltimoResultado(); // força checagem ao voltar pra aba
+    if (!intervaloAtual) {
+      intervaloAtual = setInterval(carregarUltimoResultado, 10000);
+    }
+  } else {
+    if (intervaloAtual) {
+      clearInterval(intervaloAtual);
+      intervaloAtual = null;
+    }
+  }
+});
+
 document.addEventListener("DOMContentLoaded", async () => {
   await carregarPrevisao();
   await carregarUltimoResultado();
-  setInterval(carregarUltimoResultado, 5000);
+  intervaloAtual = setInterval(carregarUltimoResultado, 10000);
   await initPush();
 
   const toggleBtn = document.getElementById("toggleJogoBtn");
